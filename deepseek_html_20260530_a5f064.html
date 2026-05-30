@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>🌿 Discord Embed Webhook | Простой текст в эмбере</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, 'Roboto', sans-serif;
+            background: radial-gradient(circle at 10% 20%, #0a2a1a, #031a0c);
+            min-height: 100vh;
+            padding: 24px 20px;
+            color: #e0f5e8;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* зеленые анимированные частицы */
+        .particles-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            background: rgba(74, 222, 128, 0.2);
+            border-radius: 50%;
+            box-shadow: 0 0 12px rgba(74, 222, 128, 0.4);
+            animation: floatParticle 16s infinite alternate ease-in-out;
+        }
+
+        @keyframes floatParticle {
+            0% {
+                transform: translateY(0px) translateX(0px) scale(1);
+                opacity: 0.25;
+            }
+            100% {
+                transform: translateY(-70px) translateX(35px) scale(1.3);
+                opacity: 0.6;
+            }
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 8px;
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #a8f0c5, #4ade80, #22c55e);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: glowPulse 3s infinite;
+        }
+
+        @keyframes glowPulse {
+            0% { filter: drop-shadow(0 0 2px #4ade80); }
+            50% { filter: drop-shadow(0 0 14px #22c55e); }
+            100% { filter: drop-shadow(0 0 2px #4ade80); }
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #9bdfb2;
+            margin-bottom: 30px;
+            font-weight: 500;
+            border-bottom: 1px dashed #3c9e6e;
+            display: inline-block;
+            width: auto;
+            margin-left: auto;
+            margin-right: auto;
+            padding-bottom: 8px;
+        }
+
+        .status-bar {
+            background: #0c2a1cbb;
+            backdrop-filter: blur(8px);
+            border-radius: 36px;
+            padding: 16px 24px;
+            margin-bottom: 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            border: 1px solid #33c27a;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #072a18;
+            padding: 6px 20px;
+            border-radius: 40px;
+        }
+
+        .status-led {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #4ade80;
+            box-shadow: 0 0 10px #4ade80;
+            animation: blinkGreen 1.4s infinite;
+        }
+
+        @keyframes blinkGreen {
+            0%, 100% { opacity: 1; background: #4ade80; box-shadow: 0 0 8px #4ade80; }
+            50% { opacity: 0.6; background: #86efac; box-shadow: 0 0 18px #22c55e; }
+        }
+
+        .current-time {
+            font-family: 'Courier New', monospace;
+            font-size: 1.2rem;
+            font-weight: 600;
+            background: #0a1f13;
+            padding: 6px 20px;
+            border-radius: 36px;
+            border: 1px solid #45da86;
+        }
+
+        #scheduleStatus {
+            background: #1d4934;
+            padding: 6px 20px;
+            border-radius: 32px;
+            font-weight: 500;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: #0e271ccc;
+            backdrop-filter: blur(4px);
+            border-radius: 28px;
+            padding: 22px;
+            border: 1px solid #3bbd74;
+            transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.3);
+        }
+
+        .card:hover {
+            transform: translateY(-6px);
+            border-color: #7affae;
+            box-shadow: 0 20px 30px -12px rgba(74, 222, 128, 0.4);
+            background: #123a26dd;
+        }
+
+        .card h3 {
+            color: #6befa0;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.35rem;
+        }
+
+        .time-badge {
+            background: #249e5a;
+            padding: 4px 16px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .plain-text-preview {
+            background: #072212;
+            border-radius: 18px;
+            padding: 14px;
+            margin: 15px 0;
+            border-left: 6px solid #4ade80;
+            font-size: 0.85rem;
+            color: #caf5dd;
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .tags-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 12px 0;
+        }
+
+        .tag {
+            background: #1f543b;
+            padding: 5px 12px;
+            border-radius: 24px;
+            font-size: 0.73rem;
+            font-family: monospace;
+            font-weight: 500;
+            color: #c1ffcf;
+        }
+
+        button {
+            background: linear-gradient(95deg, #1f9e54, #15803d);
+            color: white;
+            border: none;
+            padding: 11px 18px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            width: 100%;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        button:hover {
+            background: linear-gradient(95deg, #2ebb6c, #1d874b);
+            transform: scale(1.02);
+            box-shadow: 0 6px 14px rgba(74, 222, 128, 0.5);
+        }
+
+        button.test-btn {
+            background: #1e3a2c;
+            margin-top: 12px;
+            border: 1px solid #46b573;
+        }
+
+        .log-section {
+            background: #0b2118cc;
+            backdrop-filter: blur(4px);
+            border-radius: 28px;
+            padding: 20px;
+            border: 1px solid #319a60;
+            margin-top: 10px;
+        }
+
+        .log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .clear-log {
+            background: #2c4d38;
+            width: auto;
+            padding: 6px 20px;
+        }
+
+        .log-container {
+            background: #051a0e;
+            border-radius: 20px;
+            padding: 16px;
+            height: 310px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.82rem;
+            border: 1px solid #2c9e62;
+        }
+
+        .log-entry {
+            padding: 8px 8px;
+            border-bottom: 1px solid #1f523a;
+            display: flex;
+            gap: 12px;
+            align-items: baseline;
+        }
+
+        .log-time {
+            color: #70e5a0;
+            min-width: 80px;
+        }
+
+        .log-success {
+            border-left: 3px solid #4ade80;
+            padding-left: 12px;
+            background: rgba(74, 222, 128, 0.05);
+        }
+
+        .log-error {
+            border-left: 3px solid #f97316;
+            padding-left: 12px;
+        }
+
+        .schedule-settings {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 24px 0 20px;
+            flex-wrap: wrap;
+        }
+
+        .schedule-btn {
+            background: #1b412e;
+            width: auto;
+            padding: 10px 28px;
+        }
+
+        textarea, input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 20px;
+            background: #072713;
+            border: 1px solid #2dac68;
+            color: #e7f7ed;
+            font-family: inherit;
+            resize: vertical;
+            margin: 12px 0;
+        }
+
+        textarea:focus, input:focus {
+            outline: none;
+            border-color: #7affb2;
+            box-shadow: 0 0 8px #1ddb78;
+        }
+
+        .day-name {
+            font-size: 0.8rem;
+            color: #b1efc7;
+            margin: 8px 0 4px;
+        }
+
+        @media (max-width: 720px) {
+            .grid { grid-template-columns: 1fr; }
+            .status-bar { flex-direction: column; text-align: center; }
+        }
+
+        .embed-icon {
+            display: inline-block;
+            background: #1f543b;
+            border-radius: 12px;
+            padding: 2px 8px;
+            font-size: 0.7rem;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+<div class="particles-bg" id="particlesContainer"></div>
+<div class="container">
+    <h1>🌿 Discord Embed Webhook</h1>
+    <div style="text-align: center;"><div class="subtitle">📨 Текст отправляется ВНУТРИ эмбера (зеленый блок)</div></div>
+
+    <div class="status-bar">
+        <div class="status-indicator"><div class="status-led"></div><span>🟢 Webhook активен (Embed режим)</span></div>
+        <div class="current-time" id="currentTime"></div>
+        <div id="scheduleStatus">⏰ Автоотправка: ✅ ВКЛ</div>
+    </div>
+
+    <div class="grid" id="messagesGrid"></div>
+
+    <div class="schedule-settings">
+        <button class="schedule-btn" id="enableScheduleBtn">✅ Включить автоотправку</button>
+        <button class="schedule-btn" id="disableScheduleBtn">⏸️ Отключить автоотправку</button>
+    </div>
+
+    <div class="log-section">
+        <div class="log-header"><h3>📋 Лог отправок (Embed)</h3><button class="clear-log" id="clearLogBtn">Очистить лог</button></div>
+        <div class="log-container" id="logContainer"></div>
+    </div>
+</div>
+
+<script>
+    // ---------- ВЕБХУК ----------
+    const WEBHOOK_URL = "https://discord.com/api/webhooks/1510384579733754009/ITsiyk4_ypV-k_Vk0U9vhYemPQd7LdY8HcXF4wYAO-LkriJ2qFW55kMVeJ-YVzRGoglt";
+
+    // ---------- ТЕКСТЫ (ПРОСТО ТЕКСТ, КАК ТЫ СКАЗАЛ) ----------
+    // В 14:00 и в 20:00 - эти тексты будут внутри embed
+    const SCHEDULE_TEXTS = {
+        "14:00": "Добрый день, сегодня ваш день постановлений. Не забудьте проверить этот канал и в случае наличие постановления исполните его! Канал с постановлениями - https://discord.com/channels/713074418280038510/944976830987919451",
+        "20:00": "Напоминаем! Сегодня ваш день отчетности по складу, а так же разгрузки автомобиля под номером: ARMY19. Канал для отчета по складу - https://discord.com/channels/713076174108229712/760888899215032332"
+    };
+
+    // Роли по дням (теги)
+    const TAGS = {
+        1: ["<@&792082143408160768>", "<@&793440125798973441>"],
+        2: ["<@&792080799062556672>", "<@&793440128906821672>"],
+        3: ["<@&792081334541484062>", "<@&793440118367191050>"],
+        4: ["<@&792081780588937227>", "<@&795409425434935306>"],
+        5: ["<@&792079582500880415>", "<@&793440124067250207>"],
+        6: ["<@&713076174128939010>"],
+        0: ["<@&905244152554467348>"]
+    };
+    const DAY_NAMES = ["Воскресенье", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"];
+
+    let autoSendEnabled = true;
+    let lastSent = {};
+    let logs = [];
+
+    function addLog(message, isError = false) {
+        const entry = { time: new Date().toLocaleTimeString('ru-RU', { hour:'2-digit', minute:'2-digit', second:'2-digit' }), message, isError };
+        logs.unshift(entry);
+        if (logs.length > 110) logs.pop();
+        updateLogDisplay();
+    }
+    function updateLogDisplay() {
+        const container = document.getElementById('logContainer');
+        if (!container) return;
+        if (logs.length === 0) { container.innerHTML = '<div style="text-align:center; color:#86b397; padding:30px;">✨ Журнал отправок эмбедов ✨</div>'; return; }
+        container.innerHTML = logs.map(log => `<div class="log-entry ${log.isError ? 'log-error' : 'log-success'}"><span class="log-time">[${log.time}]</span><span class="log-message">${escapeHtml(log.message)}</span></div>`).join('');
+        container.scrollTop = 0;
+    }
+    function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+
+    // ---------- ОТПРАВКА ЭМБЕДА С ПРОСТЫМ ТЕКСТОМ ----------
+    // текст передается как description эмбера, без лишних украшательств
+    async function sendPlainTextAsEmbed(textMessage, tagsArray = [], timeLabel = "", isTest = false) {
+        // Формируем content с тегами (упоминания ролей) - они будут над эмбедом
+        let contentWithTags = "";
+        if (tagsArray && tagsArray.length > 0) {
+            contentWithTags = tagsArray.join(" ") + "\n";
+        }
+        
+        // Создаём embed: в description будет ТОЧНО ТАКОЙ ЖЕ ТЕКСТ, как передан
+        const embed = {
+            title: timeLabel ? `⏰ ${timeLabel}` : "📢 Уведомление",
+            description: textMessage,   // сюда попадает чистый текст, ссылки работают автоматически
+            color: 0x4ade80,            // зеленый цвет эмбера
+            footer: { text: "Green Webhook · Автоотправка" },
+            timestamp: new Date().toISOString()
+        };
+        
+        const payload = { content: contentWithTags, embeds: [embed] };
+        
+        try {
+            const response = await fetch(WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (response.ok) {
+                const prefix = isTest ? '[ТЕСТ] ' : '[АВТО] ';
+                addLog(`${prefix}Эмбед отправлен | ${timeLabel ? timeLabel : 'ручной'} | Текст: ${textMessage.substring(0, 70)}...`);
+                return true;
+            } else {
+                let errText = await response.text();
+                addLog(`❌ Ошибка ${response.status}: ${errText.substring(0, 120)}`, true);
+                return false;
+            }
+        } catch(err) {
+            addLog(`❌ Сбой: ${err.message}`, true);
+            return false;
+        }
+    }
+
+    // Отправка по расписанию (14:00 или 20:00)
+    async function sendScheduledMessage(timeKey, isTest = false) {
+        const now = new Date();
+        const dayOfWeek = now.getDay();
+        const todayTags = TAGS[dayOfWeek] || [];
+        const textContent = SCHEDULE_TEXTS[timeKey];
+        
+        if (!textContent) {
+            addLog(`⚠️ Нет текста для времени ${timeKey}`, true);
+            return false;
+        }
+        
+        if (!isTest) {
+            const sentKey = `${now.toDateString()}_${timeKey}`;
+            if (lastSent[sentKey]) {
+                addLog(`⏭️ Пропускаем ${timeKey} (уже отправлено сегодня)`);
+                return false;
+            }
+            lastSent[sentKey] = true;
+        }
+        
+        addLog(`${isTest ? '🧪 ТЕСТ' : '🕒 АВТО'} | ${timeKey} | Теги: ${todayTags.length ? todayTags.join(', ') : 'нет'}`);
+        return await sendPlainTextAsEmbed(textContent, todayTags, timeKey, isTest);
+    }
+
+    // Проверка расписания каждую минуту (для точности)
+    async function checkAndSend() {
+        if (!autoSendEnabled) return;
+        const now = new Date();
+        const currentTime = now.toLocaleTimeString('ru-RU', { hour:'2-digit', minute:'2-digit' });
+        if (SCHEDULE_TEXTS[currentTime]) {
+            const sentKey = `${now.toDateString()}_${currentTime}`;
+            if (!lastSent[sentKey]) {
+                await sendScheduledMessage(currentTime, false);
+            }
+        }
+    }
+
+    // ---------- РУЧНАЯ ОТПРАВКА ЛЮБОГО ТЕКСТА В ЭМБЕДЕ ----------
+    async function sendCustomTextAsEmbed(includeTags = true) {
+        const customTextarea = document.getElementById('customMessageText');
+        if (!customTextarea || !customTextarea.value.trim()) {
+            addLog("⚠️ Введите текст для отправки в эмбере", true);
+            return;
+        }
+        const userText = customTextarea.value.trim();
+        const now = new Date();
+        const dayOfWeek = now.getDay();
+        const tags = includeTags ? (TAGS[dayOfWeek] || []) : [];
+        const timeLabel = `Ручная отправка (${DAY_NAMES[dayOfWeek]})`;
+        
+        addLog(`✏️ Ручной эмбед ${includeTags ? "с тегами" : "без тегов"} | текст: ${userText.substring(0, 80)}...`);
+        await sendPlainTextAsEmbed(userText, tags, timeLabel, true);
+        customTextarea.value = ""; // очищаем поле
+    }
+
+    // тестовая отправка для карточек (14:00 / 20:00)
+    async function testScheduleSend(timeKey) {
+        await sendScheduledMessage(timeKey, true);
+    }
+
+    // управление автоотправкой
+    function enableAutoSend() { autoSendEnabled = true; document.getElementById('scheduleStatus').innerHTML = '⏰ Автоотправка: ✅ ВКЛ'; addLog('🔁 Автоотправка эмбедов включена'); }
+    function disableAutoSend() { autoSendEnabled = false; document.getElementById('scheduleStatus').innerHTML = '⏸️ Автоотправка: ❌ ВЫКЛ'; addLog('⏹️ Автоотправка эмбедов выключена'); }
+    function clearLog() { logs = []; updateLogDisplay(); addLog('🧹 Лог очищен'); }
+
+    // отрисовка карточек с ПРОСТЫМ текстом (без лишнего форматирования)
+    function renderMessagesGrid() {
+        const grid = document.getElementById('messagesGrid');
+        if (!grid) return;
+        const now = new Date();
+        const todayDay = now.getDay();
+        const todayTags = TAGS[todayDay] || [];
+        
+        let html = '';
+        for (const [time, text] of Object.entries(SCHEDULE_TEXTS)) {
+            // Показываем preview текста
+            const shortPreview = text.length > 120 ? text.substring(0, 120) + '…' : text;
+            html += `
+                <div class="card">
+                    <h3><span>📢</span> <span class="time-badge">⏰ ${time}</span> <span class="embed-icon">EMBED</span></h3>
+                    <div class="plain-text-preview">
+                        ${escapeHtml(shortPreview)}
+                    </div>
+                    <div class="day-tags">
+                        <div class="day-name">🏷️ Теги для ${DAY_NAMES[todayDay]}:</div>
+                        <div class="tags-list">
+                            ${todayTags.length ? todayTags.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('') : '<span class="tag">нет упоминаний</span>'}
+                        </div>
+                    </div>
+                    <button class="test-btn" onclick="window.testScheduleSend('${time}')">🧪 Отправить тест (эмбед) ${time}</button>
+                </div>
+            `;
+        }
+        
+        // карточка для ручной отправки ЛЮБОГО текста в эмбере
+        html += `
+            <div class="card">
+                <h3>✏️ <span>Отправить свой текст в эмбере</span></h3>
+                <textarea id="customMessageText" placeholder="Введите любой текст...&#10;Поддерживаются ссылки, упоминания, эмодзи" rows="4"></textarea>
+                <div class="day-tags">
+                    <div class="day-name">🏷️ Актуальные теги (${DAY_NAMES[todayDay]}):</div>
+                    <div class="tags-list" id="manualTagsPreview">
+                        ${todayTags.length ? todayTags.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('') : '<span class="tag">нет ролей</span>'}
+                    </div>
+                </div>
+                <button onclick="window.sendCustomTextAsEmbed(true)">📨 Отправить эмбед + теги дня</button>
+                <button class="test-btn" onclick="window.sendCustomTextAsEmbed(false)" style="margin-top:8px;">📄 Отправить чистый эмбед (без тегов)</button>
+            </div>
+        `;
+        grid.innerHTML = html;
+    }
+
+    // обновление времени и сброс кэша в полночь
+    function updateTime() {
+        const now = new Date();
+        const timeStr = now.toLocaleString('ru-RU', { hour12: false });
+        document.getElementById('currentTime').innerHTML = timeStr;
+        if (now.getHours() === 0 && now.getMinutes() === 0 && now.getSeconds() < 15) {
+            if (window._midnightFlag !== now.toDateString()) {
+                window._midnightFlag = now.toDateString();
+                lastSent = {};
+                addLog("🌙 Полночь: сброс кэша отправленных сообщений");
+            }
+        }
+    }
+
+    // зеленые частицы фона
+    function initParticles() {
+        const container = document.getElementById('particlesContainer');
+        if (!container) return;
+        for (let i = 0; i < 45; i++) {
+            const p = document.createElement('div');
+            p.classList.add('particle');
+            let size = Math.random() * 18 + 5;
+            p.style.width = size + 'px';
+            p.style.height = size + 'px';
+            p.style.left = Math.random() * 100 + '%';
+            p.style.top = Math.random() * 100 + '%';
+            p.style.animationDuration = 13 + Math.random() * 20 + 's';
+            p.style.animationDelay = Math.random() * 6 + 's';
+            container.appendChild(p);
+        }
+    }
+
+    // инициализация
+    function init() {
+        initParticles();
+        renderMessagesGrid();
+        updateTime();
+        setInterval(updateTime, 1000);
+        // проверка расписания каждые 30 секунд
+        setInterval(() => checkAndSend(), 30000);
+        
+        document.getElementById('enableScheduleBtn')?.addEventListener('click', enableAutoSend);
+        document.getElementById('disableScheduleBtn')?.addEventListener('click', disableAutoSend);
+        document.getElementById('clearLogBtn')?.addEventListener('click', clearLog);
+        
+        addLog('🌱 Green Embed Webhook загружен. Текст отправляется ВНУТРИ эмбера (зеленый блок).');
+        
+        // перерисовка карточек при смене дня (чтобы теги обновлялись)
+        setInterval(() => {
+            const newDay = new Date().getDay();
+            if (window._prevDay !== newDay) {
+                window._prevDay = newDay;
+                renderMessagesGrid();
+                addLog(`📅 День сменился на ${DAY_NAMES[newDay]}, теги обновлены`);
+            }
+        }, 3600000);
+        
+        // делаем функции глобальными
+        window.testScheduleSend = testScheduleSend;
+        window.sendCustomTextAsEmbed = sendCustomTextAsEmbed;
+    }
+    
+    init();
+</script>
+</body>
+</html>
