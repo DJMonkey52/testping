@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Тест, авто отправка</title>
+    <title>ARMY | Автоотправка (только текст в Embed)</title>
     <style>
         * {
             margin: 0;
@@ -359,7 +359,7 @@
 <div class="particles-bg" id="particlesContainer"></div>
 <div class="container">
     <h1>ARMY | Авто отправка</h1>
-    <div style="text-align: center;"><div class="subtitle">📨 Текст отправляется ВНУТРИ эмбера (зеленый блок)</div></div>
+    <div style="text-align: center;"><div class="subtitle">📨 Текст отправляется ВНУТРИ эмбера (без часов и времени в сообщении)</div></div>
 
     <div class="status-bar">
         <div class="status-indicator"><div class="status-led"></div><span>🟢 Webhook активен (Embed режим)</span></div>
@@ -381,17 +381,16 @@
 </div>
 
 <script>
-    // ---------- ВЕБХУК ----------
+    // ---------- ВЕБХУК (ВАШ) ----------
     const WEBHOOK_URL = "https://discord.com/api/webhooks/1510384579733754009/ITsiyk4_ypV-k_Vk0U9vhYemPQd7LdY8HcXF4wYAO-LkriJ2qFW55kMVeJ-YVzRGoglt";
 
-    // ---------- ТЕКСТЫ (ПРОСТО ТЕКСТ, КАК ТЫ СКАЗАЛ) ----------
-    // В 14:00 и в 20:00 - эти тексты будут внутри embed
+    // ---------- ТЕКСТЫ ДЛЯ РАСПИСАНИЯ (14:00 и 20:00) — только чистый текст без упоминания времени ----------
     const SCHEDULE_TEXTS = {
         "14:00": "Добрый день, сегодня ваш день постановлений. Не забудьте проверить этот канал и в случае наличие постановления исполните его! Канал с постановлениями - https://discord.com/channels/713074418280038510/944976830987919451",
         "20:00": "Напоминаем! Сегодня ваш день отчетности по складу, а так же разгрузки автомобиля под номером: ARMY19. Канал для отчета по складу - https://discord.com/channels/713076174108229712/760888899215032332"
     };
 
-    // Роли по дням (теги)
+    // Роли по дням недели (для упоминаний)
     const TAGS = {
         1: ["<@&792082143408160768>", "<@&793440125798973441>"],
         2: ["<@&792080799062556672>", "<@&793440128906821672>"],
@@ -404,9 +403,10 @@
     const DAY_NAMES = ["Воскресенье", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"];
 
     let autoSendEnabled = true;
-    let lastSent = {};
+    let lastSent = {};      // хранение отметок об отправке (ключ: дата_время)
     let logs = [];
 
+    // Добавление записи в лог (только для внутреннего интерфейса, в дискорд не отправляется)
     function addLog(message, isError = false) {
         const entry = { time: new Date().toLocaleTimeString('ru-RU', { hour:'2-digit', minute:'2-digit', second:'2-digit' }), message, isError };
         logs.unshift(entry);
@@ -422,22 +422,26 @@
     }
     function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
 
-    // ---------- ОТПРАВКА ЭМБЕДА С ПРОСТЫМ ТЕКСТОМ ----------
-    // текст передается как description эмбера, без лишних украшательств
-    async function sendPlainTextAsEmbed(textMessage, tagsArray = [], timeLabel = "", isTest = false) {
-        // Формируем content с тегами (упоминания ролей) - они будут над эмбедом
+    // --------------------------------------------------------------
+    // ОТПРАВКА ЭМБЕДА: внутри description ТОЛЬКО ПОЛЬЗОВАТЕЛЬСКИЙ ТЕКСТ
+    // Никаких "во сколько отправлено", никаких часов. Только то, что передано в параметре "pureText".
+    // Параметр extraTitleInfo не используется в embed, оставлен для совместимости (игнорируется).
+    // --------------------------------------------------------------
+    async function sendPlainTextAsEmbed(pureText, tagsArray = [], isTest = false) {
+        // Формируем content с тегами (упоминания ролей) — это будет над эмбедом
         let contentWithTags = "";
         if (tagsArray && tagsArray.length > 0) {
             contentWithTags = tagsArray.join(" ") + "\n";
         }
         
-        // Создаём embed: в description будет ТОЧНО ТАКОЙ ЖЕ ТЕКСТ, как передан
+        // Создаём embed: в description идёт ТОЧНО ТОТ ТЕКСТ, который должен увидеть пользователь.
+        // БЕЗ добавления времени отправки, БЕЗ "в 14:00 отправлено". Только чистый аргумент pureText.
         const embed = {
-            title: timeLabel ? `⏰ ${timeLabel}` : "📢 Уведомление",
-            description: textMessage,   // сюда попадает чистый текст, ссылки работают автоматически
-            color: 0x4ade80,            // зеленый цвет эмбера
-            footer: { text: "ARMY | Уведомление" },
-            timestamp: new Date().toISOString()
+            title: "📢 Уведомление",         // фиксированный заголовок без времени
+            description: pureText,            // именно сюда попадает чистый текст сообщения
+            color: 0x4ade80,                  // приятный зелёный цвет
+            footer: { text: "ARMY | Уведомление" }
+            // timestamp намеренно не добавляем, чтобы не было временной метки Discrod (она всё равно отображается справа, но это стандартное поведение Discord, мы не выводим часы в теле сообщения)
         };
         
         const payload = { content: contentWithTags, embeds: [embed] };
@@ -450,7 +454,9 @@
             });
             if (response.ok) {
                 const prefix = isTest ? '[ТЕСТ] ' : '[АВТО] ';
-                addLog(`${prefix}Эмбед отправлен | ${timeLabel ? timeLabel : 'ручной'} | Текст: ${textMessage.substring(0, 70)}...`);
+                // Урезаем текст для лога
+                const shortText = pureText.length > 70 ? pureText.substring(0, 70) + '…' : pureText;
+                addLog(`${prefix}Эмбед отправлен | Текст: ${shortText}`);
                 return true;
             } else {
                 let errText = await response.text();
@@ -463,7 +469,7 @@
         }
     }
 
-    // Отправка по расписанию (14:00 или 20:00)
+    // Отправка по расписанию (для 14:00 или 20:00) - без указания времени внутри эмбеда
     async function sendScheduledMessage(timeKey, isTest = false) {
         const now = new Date();
         const dayOfWeek = now.getDay();
@@ -475,6 +481,7 @@
             return false;
         }
         
+        // Проверка дублей (только для автоматического режима, не для теста)
         if (!isTest) {
             const sentKey = `${now.toDateString()}_${timeKey}`;
             if (lastSent[sentKey]) {
@@ -485,10 +492,11 @@
         }
         
         addLog(`${isTest ? '🧪 ТЕСТ' : '🕒 АВТО'} | ${timeKey} | Теги: ${todayTags.length ? todayTags.join(', ') : 'нет'}`);
-        return await sendPlainTextAsEmbed(textContent, todayTags, timeKey, isTest);
+        // ВАЖНО: передаём ТОЛЬКО textContent (пользовательский текст), без добавок времени
+        return await sendPlainTextAsEmbed(textContent, todayTags, isTest);
     }
 
-    // Проверка расписания каждую минуту (для точности)
+    // Проверка расписания каждые 30 секунд
     async function checkAndSend() {
         if (!autoSendEnabled) return;
         const now = new Date();
@@ -501,7 +509,7 @@
         }
     }
 
-    // ---------- РУЧНАЯ ОТПРАВКА ЛЮБОГО ТЕКСТА В ЭМБЕДЕ ----------
+    // ---------- РУЧНАЯ ОТПРАВКА ЛЮБОГО ТЕКСТА В ЭМБЕДЕ (без времени) ----------
     async function sendCustomTextAsEmbed(includeTags = true) {
         const customTextarea = document.getElementById('customMessageText');
         if (!customTextarea || !customTextarea.value.trim()) {
@@ -512,24 +520,24 @@
         const now = new Date();
         const dayOfWeek = now.getDay();
         const tags = includeTags ? (TAGS[dayOfWeek] || []) : [];
-        const timeLabel = `Ручная отправка (${DAY_NAMES[dayOfWeek]})`;
         
         addLog(`✏️ Ручной эмбед ${includeTags ? "с тегами" : "без тегов"} | текст: ${userText.substring(0, 80)}...`);
-        await sendPlainTextAsEmbed(userText, tags, timeLabel, true);
-        customTextarea.value = ""; // очищаем поле
+        // Передаём чистый текст юзера, никаких времён
+        await sendPlainTextAsEmbed(userText, tags, true);
+        customTextarea.value = ""; // очищаем поле после отправки
     }
 
-    // тестовая отправка для карточек (14:00 / 20:00)
+    // Тестовая отправка для карточек (без времени внутри сообщения)
     async function testScheduleSend(timeKey) {
         await sendScheduledMessage(timeKey, true);
     }
 
-    // управление автоотправкой
+    // Управление автоотправкой
     function enableAutoSend() { autoSendEnabled = true; document.getElementById('scheduleStatus').innerHTML = '⏰ Автоотправка: ✅ ВКЛ'; addLog('🔁 Автоотправка эмбедов включена'); }
     function disableAutoSend() { autoSendEnabled = false; document.getElementById('scheduleStatus').innerHTML = '⏸️ Автоотправка: ❌ ВЫКЛ'; addLog('⏹️ Автоотправка эмбедов выключена'); }
     function clearLog() { logs = []; updateLogDisplay(); addLog('🧹 Лог очищен'); }
 
-    // отрисовка карточек с ПРОСТЫМ текстом (без лишнего форматирования)
+    // Отрисовка карточек с демонстрацией ПРОСТОГО текста (без часов)
     function renderMessagesGrid() {
         const grid = document.getElementById('messagesGrid');
         if (!grid) return;
@@ -539,7 +547,7 @@
         
         let html = '';
         for (const [time, text] of Object.entries(SCHEDULE_TEXTS)) {
-            // Показываем preview текста
+            // Показываем превью текста (каким он будет внутри эмбера)
             const shortPreview = text.length > 120 ? text.substring(0, 120) + '…' : text;
             html += `
                 <div class="card">
@@ -558,11 +566,11 @@
             `;
         }
         
-        // карточка для ручной отправки ЛЮБОГО текста в эмбере
+        // Карточка для ручной отправки ЛЮБОГО текста (чистый embed)
         html += `
             <div class="card">
                 <h3>✏️ <span>Отправить свой текст в эмбере</span></h3>
-                <textarea id="customMessageText" placeholder="Введите любой текст...&#10;Поддерживаются ссылки, упоминания, эмодзи" rows="4"></textarea>
+                <textarea id="customMessageText" placeholder="Введите любой текст...&#10;Поддерживаются ссылки, упоминания пользователей, эмодзи.&#10;Время отправки НЕ добавляется в сообщение." rows="4"></textarea>
                 <div class="day-tags">
                     <div class="day-name">🏷️ Актуальные теги (${DAY_NAMES[todayDay]}):</div>
                     <div class="tags-list" id="manualTagsPreview">
@@ -576,11 +584,12 @@
         grid.innerHTML = html;
     }
 
-    // обновление времени и сброс кэша в полночь
+    // Обновление часов в интерфейсе (это только для UI, не влияет на эмбеды)
     function updateTime() {
         const now = new Date();
         const timeStr = now.toLocaleString('ru-RU', { hour12: false });
         document.getElementById('currentTime').innerHTML = timeStr;
+        // Сброс кэша в полночь
         if (now.getHours() === 0 && now.getMinutes() === 0 && now.getSeconds() < 15) {
             if (window._midnightFlag !== now.toDateString()) {
                 window._midnightFlag = now.toDateString();
@@ -590,7 +599,7 @@
         }
     }
 
-    // зеленые частицы фона
+    // Зеленые частицы фона
     function initParticles() {
         const container = document.getElementById('particlesContainer');
         if (!container) return;
@@ -608,22 +617,22 @@
         }
     }
 
-    // инициализация
+    // Инициализация всех систем
     function init() {
         initParticles();
         renderMessagesGrid();
         updateTime();
         setInterval(updateTime, 1000);
-        // проверка расписания каждые 30 секунд
+        // Проверка расписания каждые 30 секунд (для точной отправки)
         setInterval(() => checkAndSend(), 30000);
         
         document.getElementById('enableScheduleBtn')?.addEventListener('click', enableAutoSend);
         document.getElementById('disableScheduleBtn')?.addEventListener('click', disableAutoSend);
         document.getElementById('clearLogBtn')?.addEventListener('click', clearLog);
         
-        addLog('🌱 Green Embed Webhook загружен. Текст отправляется ВНУТРИ эмбера (зеленый блок).');
+        addLog('🌱 Система загружена. Все сообщения отправляются ТОЛЬКО как текст внутри Embed, без времени и часов.');
         
-        // перерисовка карточек при смене дня (чтобы теги обновлялись)
+        // Автоматическое обновление карточек при смене дня (чтобы теги обновлялись)
         setInterval(() => {
             const newDay = new Date().getDay();
             if (window._prevDay !== newDay) {
@@ -633,7 +642,7 @@
             }
         }, 3600000);
         
-        // делаем функции глобальными
+        // Экспорт функций глобально для кнопок
         window.testScheduleSend = testScheduleSend;
         window.sendCustomTextAsEmbed = sendCustomTextAsEmbed;
     }
