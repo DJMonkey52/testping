@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>🌿 Discord Embed Webhook | Простой текст в эмбере</title>
+    <title>Тест, авто отправка</title>
     <style>
         * {
             margin: 0;
@@ -358,7 +358,7 @@
 <body>
 <div class="particles-bg" id="particlesContainer"></div>
 <div class="container">
-    <h1>🌿 Discord Embed Webhook</h1>
+    <h1>ARMY | Авто отправка</h1>
     <div style="text-align: center;"><div class="subtitle">📨 Текст отправляется ВНУТРИ эмбера (зеленый блок)</div></div>
 
     <div class="status-bar">
@@ -387,8 +387,8 @@
     // ---------- ТЕКСТЫ (ПРОСТО ТЕКСТ, КАК ТЫ СКАЗАЛ) ----------
     // В 14:00 и в 20:00 - эти тексты будут внутри embed
     const SCHEDULE_TEXTS = {
-        "14:00": "Добрый день, сегодня ваш день постановлений. Не забудьте проверить этот канал и в случае наличие постановления исполните его! Канал с постановлениями - https://discord.com/channels/713074418280038510/944976830987919451",
-        "20:00": "Напоминаем! Сегодня ваш день отчетности по складу, а так же разгрузки автомобиля под номером: ARMY19. Канал для отчета по складу - https://discord.com/channels/713076174108229712/760888899215032332"
+        "Добрый день, сегодня ваш день постановлений. Не забудьте проверить этот канал и в случае наличие постановления исполните его! Канал с постановлениями - https://discord.com/channels/713074418280038510/944976830987919451",
+        "Напоминаем! Сегодня ваш день отчетности по складу, а так же разгрузки автомобиля под номером: ARMY19. Канал для отчета по складу - https://discord.com/channels/713076174108229712/760888899215032332"
     };
 
     // Роли по дням (теги)
@@ -436,7 +436,7 @@
             title: timeLabel ? `⏰ ${timeLabel}` : "📢 Уведомление",
             description: textMessage,   // сюда попадает чистый текст, ссылки работают автоматически
             color: 0x4ade80,            // зеленый цвет эмбера
-            footer: { text: "Green Webhook · Автоотправка" },
+            footer: { text: "ARMY | Уведомление" },
             timestamp: new Date().toISOString()
         };
         
